@@ -67,6 +67,38 @@ app.get('/', function(req, res){
   });
 });
 
-app.put('/quotes', function(req,res){
+//handle the put request from the browser to update the list of quotes
 
-})
+app.put('/quotes', function(req,res){
+  //use mongodb collections method findandupdate , takes 4 params
+  //query, filters collection through key value pairs given
+  //update, uses mongodb update ops $set, $inc, $push. $set to change yodas quotes into darth vaders
+  // sort, allows mongodb to search starting from newest entry, upsert, insert if record doesn't exist
+  //final parameter is callback function, allow to do something once mongodb has replaced the final quote
+  // want to send the result back to the fetch request
+    db.collection('quotes').findOneAndUpdate(
+
+        {name: 'Yoda'},
+        { $set: {
+          name: req.body.name,
+          quote: req.body.quote
+        }},
+        {
+          sort: {_id:-1},
+          upsert: true
+        },
+        function(err, result){
+          if(err) return res.send(err)
+          res.send(result)
+        }
+    )
+});
+
+app.delete('/quotes', function(req, res){
+  db.collection('quotes').findOneAndDelete(
+    {name: req.body.name},
+    function(err,result){
+      if(err) return res.send(500,err)
+      res.send(result)
+    })
+});
